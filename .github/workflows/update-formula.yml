@@ -1,0 +1,96 @@
+name: Update Highwater Formula
+on:
+  repository_dispatch:
+    types: [highwater-release-published]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tap repo
+        uses: actions/checkout@v6
+      - name: Resolve release metadata
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_TAG: ${{ github.event.client_payload.tag || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "$EVENT_TAG" ]; then
+            echo "Using repository_dispatch tag: $EVENT_TAG"
+            gh api "repos/nickcox/highwater/releases/tags/$EVENT_TAG" > "$RUNNER_TEMP/release.json"
+          else
+            echo "No repository_dispatch tag provided; using latest release"
+            gh api repos/nickcox/highwater/releases/latest > "$RUNNER_TEMP/release.json"
+          fi
+          jq '{tag_name, name, draft, prerelease, published_at}' "$RUNNER_TEMP/release.json"
+          jq -r '.assets[] | "- \(.name) | \(.digest // "no-digest")"' "$RUNNER_TEMP/release.json"
+          if [ "$(jq -r '.draft' "$RUNNER_TEMP/release.json")" = true ]; then
+            echo "release is still a draft, so its download URLs do not work yet" >&2
+            exit 1
+          fi
+          tag=$(jq -r '.tag_name' "$RUNNER_TEMP/release.json")
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "url=$(jq -r '.html_url' "$RUNNER_TEMP/release.json")" >> "$GITHUB_OUTPUT"
+      - name: Update Formula/highwater.rb
+        id: update_formula
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          python3 - "$RUNNER_TEMP/release.json" <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          release = json.load(open(sys.argv[1]))
+          tag = os.environ["TAG"]
+          version = tag.removeprefix("v")
+          assets = {asset["name"]: asset for asset in release["assets"]}
+          path = Path("Formula/highwater.rb")
+          text = path.read_text()
+          updated = text
+          for target in [
+              "aarch64-apple-darwin",
+              "x86_64-apple-darwin",
+              "aarch64-unknown-linux-gnu",
+              "x86_64-unknown-linux-gnu",
+          ]:
+              name = f"highwater-{version}-{target}.tar.gz"
+              asset = assets.get(name)
+              if asset is None or not (asset.get("digest") or "").startswith("sha256:"):
+                  sys.exit(f"release {tag} has no {name} with a sha256 digest")
+              # Each target's url line is followed by its sha256 line.
+              pattern = (
+                  r'(url ")https://github\.com/nickcox/highwater/releases/download/[^"]+-'
+                  + re.escape(target)
+                  + r'\.tar\.gz("\s*\n\s*sha256 ")[0-9a-f]+(")'
+              )
+              updated, count = re.subn(
+                  pattern,
+                  lambda m: m.group(1) + asset["browser_download_url"] + m.group(2)
+                  + asset["digest"].removeprefix("sha256:") + m.group(3),
+                  updated,
+              )
+              if count != 1:
+                  sys.exit(f"expected one url and sha256 for {target} in the formula, found {count}")
+          changed = updated != text
+          if changed:
+              path.write_text(updated)
+          print("Formula updated." if changed else "No formula content changed.")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write(f"changed={'true' if changed else 'false'}\n")
+          PY
+      - name: Open pull request
+        if: steps.update_formula.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: update-highwater-formula-${{ steps.release.outputs.tag }}
+          commit-message: "Update the Highwater formula to ${{ steps.release.outputs.tag }}"
+          title: "Update the Highwater formula to ${{ steps.release.outputs.tag }}"
+          body: |
+            Updates `highwater` to [${{ steps.release.outputs.tag }}](${{ steps.release.outputs.url }}).

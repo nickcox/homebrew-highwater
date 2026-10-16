@@ -10,6 +10,6 @@ The formula installs the prebuilt binary from Highwater's GitHub release for mac
 
 ## Updating the formula for a new release
 
-1. Change the version in the four `url`s in `Formula/highwater.rb`.
-2. Replace each `sha256` with the matching line of the release's `SHA256SUMS` file.
-3. Check it with `brew style Formula/highwater.rb`, then `brew reinstall highwater` and `brew test highwater`.
+Publishing a Highwater release sends a `highwater-release-published` event to this repository, and `.github/workflows/update-formula.yml` opens a pull request that points the formula at the new release's archives and their SHA-256 digests. Review and merge it. To update from the latest release by hand, run the workflow from the Actions tab.
+
+Highwater's release workflow needs a `HOMEBREW_TAP_DISPATCH_TOKEN` secret: a fine-grained personal access token with read and write access to this repository's contents. This repository needs "Allow GitHub Actions to create and approve pull requests" turned on under Settings → Actions → General.
