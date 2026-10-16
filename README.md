@@ -10,6 +10,6 @@ The formula installs the prebuilt binary from Highwater's GitHub release for mac
 
 ## Updating the formula for a new release
 
-1. Change `version` and the four `url`s in `Formula/highwater.rb` to the new version.
+1. Change the version in the four `url`s in `Formula/highwater.rb`.
 2. Replace each `sha256` with the matching line of the release's `SHA256SUMS` file.
 3. Check it with `brew style Formula/highwater.rb`, then `brew reinstall highwater` and `brew test highwater`.

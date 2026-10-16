@@ -1,7 +1,6 @@
 class Highwater < Formula
   desc "Local viewer for how coding-agent sessions use their context window"
   homepage "https://github.com/nickcox/highwater"
-  version "0.1.0"
   license "MIT"
 
   on_macos do
