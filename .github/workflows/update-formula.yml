@@ -86,6 +86,7 @@ jobs:
               f.write(f"changed={'true' if changed else 'false'}\n")
           PY
       - name: Open pull request
+        id: pull_request
         if: steps.update_formula.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
@@ -94,3 +95,10 @@ jobs:
           title: "Update the Highwater formula to ${{ steps.release.outputs.tag }}"
           body: |
             Updates `highwater` to [${{ steps.release.outputs.tag }}](${{ steps.release.outputs.url }}).
+      # The repository requires an approving review, so this merges the pull request once it is
+      # approved. It needs the repository's "Allow auto-merge" setting.
+      - name: Merge the pull request once it is approved
+        if: steps.pull_request.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr merge --auto --squash "${{ steps.pull_request.outputs.pull-request-number }}" --repo "$GITHUB_REPOSITORY"
