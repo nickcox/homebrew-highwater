@@ -5,23 +5,23 @@ class Highwater < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/nickcox/highwater/releases/download/v0.5.1/highwater-0.5.1-aarch64-apple-darwin.tar.gz"
-      sha256 "8e3dcd0a47cf13ac84e7cb074a351c850c335244ccb370fb915695b62f8d97a6"
+      url "https://github.com/nickcox/highwater/releases/download/v0.5.2/highwater-0.5.2-aarch64-apple-darwin.tar.gz"
+      sha256 "6372dca4eaf34a22d7aaaa1c6b624ca5b98b1371888630a45320263354ee1dce"
     end
     on_intel do
-      url "https://github.com/nickcox/highwater/releases/download/v0.5.1/highwater-0.5.1-x86_64-apple-darwin.tar.gz"
-      sha256 "e9683730bb7b0e98a26221e40c438ecf5ba980cac58bd3f63c14045f6bfd1c63"
+      url "https://github.com/nickcox/highwater/releases/download/v0.5.2/highwater-0.5.2-x86_64-apple-darwin.tar.gz"
+      sha256 "7601bb0aaa5162600f724fedb4441d71c41d272844a56da6ceb075a8aa09e890"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/nickcox/highwater/releases/download/v0.5.1/highwater-0.5.1-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "242da295bb63a8a9092b606fb8b7a4448a3aee4717f888f9beeb26e4d19cd9a2"
+      url "https://github.com/nickcox/highwater/releases/download/v0.5.2/highwater-0.5.2-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "1a406f14a12345c72911d305e5fc935cdb71bc7afcdaaa9d82faa953b7fc5479"
     end
     on_intel do
-      url "https://github.com/nickcox/highwater/releases/download/v0.5.1/highwater-0.5.1-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "8012c3a54dd703550278463312ef73123f0e11d82b2d680463e6efd133432ac7"
+      url "https://github.com/nickcox/highwater/releases/download/v0.5.2/highwater-0.5.2-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "30b35ff7c5f5f649de49e13e8fbfee620a21e74d010e1cf546ccae7967c1dfd4"
     end
   end
 
